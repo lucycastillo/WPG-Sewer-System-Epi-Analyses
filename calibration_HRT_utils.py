@@ -28,53 +28,41 @@ def calculate_HRT(conduit_summary):
 
         continue
     HRT = pd.DataFrame(HRT_df, columns= ['Conduit HRT (HRS)'])
+    theta = pd.DataFrame(theta_df, columns= ['Theta Values'])
+    flow_area = pd.DataFrame(flow_area_df, columns=['Flow Area'])
+    flow_vol = pd.DataFrame(flow_volume_df, columns=['flow volume'])
+    print(theta)
+    print(flow_area)
+    print(flow_vol)
 
     return HRT
 
+def calculate_path_HRT(path, conduit_dict):
 
-# Sample data
-data = {
-    'mean_depth': [0.265454, 0.462340, 0.252310, 0.140396, 0.289859],
-    'mean_flow': [0.223589, 0.703011, 0.201230, 0.055859, 0.266972],
-    'cond_length': [839.4065, 4137.0618, 495.5659, 473.4282, 3715.5304]
-}
+    total_hrt = 0
 
-# df for testing
-conduit_summary = pd.DataFrame(data)
+    # for i in range(len(path) - 1):
+        # start_node = path[i]
+        # end_node = path[i + 1]
+        
+        # key = ('ct_' + str(i), start_node, end_node)
+        # print([key for key in conduit_dict])
+        # print(path)
+    keys = [key for key in conduit_dict if (key[1] in path and key[2] in path)]
+    print(keys)
+        
+    for key in keys:
 
-#HRT_result = calculate_HRT(conduit_summary)
-#print(HRT_result)
+        # if key in conduit_dict:
+        hrt_value = conduit_dict[key]
+        #print(f"Conduit ID FOUND for nodes: {start_node}, {end_node}")
+        total_hrt += hrt_value
 
-def calculate_path_HRT(graph, conduits, path):
-    total_HRT = 0
-    for i in range(len(path) - 1):
-        start_node = path[i]
-        end_node = path[i + 1]
-        conduit = conduits[start_node][end_node]
-        conduit_HRT = calculate_HRT(conduit_summary)
-        total_HRT += conduit_HRT
-    return total_HRT
+    # else:
+        #print(f"Conduit ID not found for nodes: {start_node}, {end_node}")
 
-def calculate_node_to_pathway(g, source, target, conduit_states):
+        # pass
+    #total_path_HRT['Total_HRT'] = total_hrt
 
-    path_nodes = nx.dijkstra_path(g, source, target)
-    source = 0
-    path_conduits = [node for node in path_nodes if node in conduit_states.index]
-    path_edges = [(path_nodes[ii],path_nodes[ii+1]) for ii, _ in enumerate(path_nodes[:-1])]
-    path_reference_ids = [g.edges()[edge]['id'] for edge in path_edges]
-    path_reference_ids =[id for id in path_reference_ids if id in conduit_states.index]
-    path_hrt = conduit_states.loc[path_reference_ids,'conduit_hrt'].sum()
-    path_length = conduit_states.loc[path_reference_ids,'conduit_length'].sum()/1000
-
-    if len(path_reference_ids) > 0:
-        path['reference_id'] = path_reference_ids[0]
-        path['path_source'] = source
-        path['path_target'] = target
-        path['nodes'] = path_nodes
-        path['edges'] = path_edges
-        path['reference_ids'] = path_reference_ids
-        path['path_hrt'] = path_hrt
-        path['path_length'] = path_length
-    return path 
-
+    return total_hrt
    
